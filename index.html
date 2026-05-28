@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sitemark Field">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>Sitemark Field</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@300;400;500&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0A0A0A;--panel:#111;--panel2:#161616;--border:#222;--border2:#2a2a2a;
+  --o:#E8520A;--o2:rgba(232,82,10,0.15);--o3:rgba(232,82,10,0.06);
+  --text:#EDE9E3;--dim:#666;--dim2:#999;--green:#3DFF6E;
+  --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
+  --display:'Archivo Black',sans-serif;--mono:'Share Tech Mono',monospace;
+  --body:'Archivo',sans-serif;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);
+  font-family:var(--body);overflow:hidden;touch-action:manipulation;}
+
+/* ── SCREENS ── */
+.screen{position:absolute;inset:0;display:none;flex-direction:column;overflow:hidden;}
+.screen.active{display:flex;}
+.scroll{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding-bottom:max(40px,calc(var(--sab)+20px));}
+
+/* ── SPLASH ── */
+#splash{background:var(--bg);align-items:center;justify-content:center;gap:0;}
+.splash-logo{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.splash-icon{width:88px;height:88px;border-radius:22px;background:var(--panel);
+  border:1.5px solid var(--o);display:flex;align-items:center;justify-content:center;
+  font-size:38px;box-shadow:0 0 48px rgba(232,82,10,0.25);margin-bottom:20px;}
+.splash-brand{font-family:var(--display);font-size:28px;letter-spacing:1px;}
+.splash-sub-brand{font-family:var(--mono);font-size:11px;letter-spacing:4px;
+  color:var(--o);text-transform:uppercase;margin-top:2px;}
+.splash-tagline{font-size:13px;color:var(--dim);letter-spacing:1px;margin-top:16px;
+  font-family:var(--mono);}
+.splash-bar{width:140px;height:2px;background:#1a1a1a;border-radius:1px;margin-top:40px;overflow:hidden;}
+.splash-fill{height:100%;background:var(--o);width:0;animation:sload 1.5s ease-out forwards;}
+@keyframes sload{0%{width:0}100%{width:100%}}
+
+/* ── SHARED HEADER ── */
+.page-header{
+  padding-top:max(52px,calc(var(--sat)+16px));
+  padding:max(52px,calc(var(--sat)+16px)) 20px 14px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  display:flex;justify-content:space-between;align-items:flex-end;
+}
+.page-title{font-family:var(--display);font-size:32px;letter-spacing:.5px;}
+.back-btn{background:none;border:none;color:var(--o);font-family:var(--mono);
+  font-size:11px;letter-spacing:2px;cursor:pointer;padding:4px 0;text-transform:uppercase;}
+
+/* ── HOME ── */
+#home{background:var(--bg);}
+.home-header{
+  padding:max(52px,calc(var(--sat)+16px)) 20px 0;
+  flex-shrink:0;
+}
+.home-brand-row{display:flex;justify-content:space-between;align-items:flex-start;
+  padding-bottom:14px;border-bottom:1px solid var(--border);}
+.home-brand{display:flex;flex-direction:column;}
+.brand-name{font-family:var(--display);font-size:26px;letter-spacing:.5px;}
+.brand-field{font-family:var(--mono);font-size:9px;letter-spacing:4px;
+  color:var(--o);text-transform:uppercase;margin-top:1px;}
+.header-actions{display:flex;gap:8px;align-items:center;}
+.pro-badge{font-family:var(--mono);font-size:9px;letter-spacing:2px;
+  background:var(--o2);border:1px solid var(--o);border-radius:2px;
+  color:var(--o);padding:4px 8px;text-transform:uppercase;}
+.free-badge{font-family:var(--mono);font-size:9px;letter-spacing:2px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:2px;
+  color:var(--dim2);padding:4px 8px;}
+
+/* free limit bar */
+.free-limit-bar{
+  margin:12px 20px 0;background:var(--panel);border:1px solid var(--border);
+  border-radius:4px;padding:12px 14px;display:none;
+}
+.free-limit-bar.show{display:block;}
+.flb-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.flb-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim2);}
+.flb-count{font-family:var(--display);font-size:18px;color:var(--o);}
+.flb-track{height:3px;background:var(--border2);border-radius:2px;overflow:hidden;}
+.flb-fill{height:100%;background:var(--o);border-radius:2px;transition:width .4s;}
+.flb-cta{font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  color:var(--o);margin-top:8px;cursor:pointer;text-decoration:underline;}
+
+/* job tabs */
+.job-tabs-wrap{flex-shrink:0;border-bottom:1px solid var(--border);}
+.job-tabs{display:flex;overflow-x:auto;scrollbar-width:none;}
+.job-tabs::-webkit-scrollbar{display:none;}
+.job-tab{padding:11px 16px;font-family:var(--mono);font-size:10px;letter-spacing:2px;
+  color:var(--dim);cursor:pointer;white-space:nowrap;
+  border-bottom:2px solid transparent;transition:all .15s;flex-shrink:0;text-transform:uppercase;}
+.job-tab.active{color:var(--o);border-bottom-color:var(--o);}
+.job-tab-add{padding:11px 14px;font-size:16px;color:var(--dim);cursor:pointer;flex-shrink:0;}
+
+/* import banner */
+.import-banner{margin:12px 20px 0;background:rgba(61,255,110,.07);
+  border:1px solid rgba(61,255,110,.25);border-radius:4px;padding:11px 14px;
+  font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:1px;display:none;}
+.import-banner.show{display:block;}
+
+/* mark cards */
+.marks-grid{padding:16px 20px;display:flex;flex-direction:column;gap:10px;}
+.mark-card{background:var(--panel);border:1px solid var(--border);border-radius:6px;
+  overflow:hidden;transition:border-color .15s;}
+.mark-card:active{border-color:rgba(232,82,10,.4);}
+.mark-photo{width:100%;height:96px;object-fit:cover;display:block;}
+.mark-body{padding:12px 14px;}
+.mark-name{font-family:var(--display);font-size:19px;letter-spacing:.3px;}
+.mark-meta{font-family:var(--mono);font-size:9px;color:var(--dim2);
+  letter-spacing:1px;margin-top:4px;text-transform:uppercase;}
+.mark-notes{font-size:12px;color:var(--dim2);margin-top:7px;line-height:1.6;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.mark-tags{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.mark-tag{font-family:var(--mono);font-size:9px;letter-spacing:1px;
+  background:var(--o3);border:1px solid rgba(232,82,10,.2);
+  border-radius:2px;padding:3px 7px;color:var(--o);text-transform:uppercase;}
+.mark-actions{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap;}
+.btn-s{padding:8px 13px;font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  border-radius:3px;cursor:pointer;border:none;text-transform:uppercase;transition:opacity .15s;}
+.btn-s:active{opacity:.7;}
+.btn-track{background:var(--o);color:#000;font-weight:700;}
+.btn-edit{background:transparent;border:1px solid var(--border2);color:var(--dim2);}
+.btn-share{background:transparent;border:1px solid var(--border2);color:var(--dim2);}
+.btn-del{background:transparent;border:1px solid var(--border);color:var(--dim);margin-left:auto;}
+
+.empty{text-align:center;padding:64px 24px;color:var(--dim);
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;line-height:2.6;text-transform:uppercase;}
+
+.fab{position:fixed;bottom:max(28px,calc(var(--sab)+12px));right:20px;
+  width:58px;height:58px;border-radius:50%;background:var(--o);border:none;
+  font-size:26px;color:#000;cursor:pointer;
+  box-shadow:0 4px 28px rgba(232,82,10,.5);
+  display:flex;align-items:center;justify-content:center;z-index:20;}
+.fab:active{transform:scale(.92);}
+
+/* ── MARK / EDIT ── */
+#mark{background:var(--bg);}
+.form-body{padding:20px;}
+.field{margin-bottom:16px;}
+.field-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--o);
+  margin-bottom:8px;display:block;text-transform:uppercase;}
+.field-input{width:100%;background:rgba(255,255,255,.03);border:1px solid var(--border2);
+  border-radius:4px;color:var(--text);font-family:var(--body);
+  font-size:15px;padding:12px 14px;outline:none;transition:border-color .15s;
+  -webkit-appearance:none;}
+.field-input:focus{border-color:var(--o);}
+.field-input::placeholder{color:#333;}
+textarea.field-input{resize:none;height:76px;line-height:1.6;}
+select.field-input{cursor:pointer;}
+
+/* ── iOS SCROLL WHEEL PICKER ── */
+.picker-wrap{
+  position:relative;height:154px;overflow:hidden;
+  border:1px solid var(--border2);border-radius:10px;
+  background:rgba(255,255,255,.02);
+  cursor:grab;user-select:none;
+}
+.picker-wrap:active{cursor:grabbing;}
+
+/* fade top/bottom */
+.picker-wrap::before,.picker-wrap::after{
+  content:'';position:absolute;left:0;right:0;height:52px;z-index:2;pointer-events:none;
+}
+.picker-wrap::before{top:0;
+  background:linear-gradient(to bottom,rgba(10,10,10,.95),transparent);}
+.picker-wrap::after{bottom:0;
+  background:linear-gradient(to top,rgba(10,10,10,.95),transparent);}
+
+/* selection band */
+.picker-band{
+  position:absolute;top:50%;left:12px;right:12px;
+  transform:translateY(-50%);height:38px;
+  border-top:1px solid rgba(232,82,10,.35);
+  border-bottom:1px solid rgba(232,82,10,.35);
+  background:rgba(232,82,10,.07);
+  border-radius:6px;pointer-events:none;z-index:3;
+}
+
+.picker-list{
+  position:absolute;left:0;right:0;
+  display:flex;flex-direction:column;align-items:center;
+  will-change:transform;transition:transform .12s cubic-bezier(.25,.46,.45,.94);
+}
+
+.picker-item{
+  height:38px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--body);font-size:17px;font-weight:400;
+  color:var(--dim);width:100%;flex-shrink:0;
+  transition:color .15s,font-weight .15s,transform .15s;
+  letter-spacing:.3px;
+}
+.picker-item.active{color:var(--text);font-weight:600;}
+.picker-item.near{color:#aaa;}
+
+/* photo */
+.photo-area{width:100%;height:110px;border:1px dashed #2a2a2a;border-radius:4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:5px;cursor:pointer;overflow:hidden;position:relative;transition:border-color .15s;}
+.photo-area:active{border-color:var(--o);}
+.photo-label{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--dim);z-index:1;}
+#photo-input{display:none;}
+
+/* compass */
+.compass-box{border:1px solid var(--border2);border-radius:4px;padding:16px;
+  display:flex;align-items:center;gap:18px;}
+.cring{width:72px;height:72px;flex-shrink:0;border:1.5px solid #222;border-radius:50%;
+  position:relative;display:flex;align-items:center;justify-content:center;}
+.cneedle{width:3px;height:28px;position:absolute;top:8px;left:50%;
+  transform:translateX(-50%);transform-origin:bottom center;
+  border-radius:2px 2px 0 0;background:var(--o);}
+.cdot{width:5px;height:5px;background:var(--o);border-radius:50%;position:absolute;}
+.clabels{position:absolute;inset:0;font-family:var(--mono);font-size:7px;color:#2a2a2a;}
+.clabels span{position:absolute;transform:translate(-50%,-50%);}
+.compass-hdg{font-family:var(--display);font-size:32px;color:var(--o);}
+.compass-status{font-family:var(--mono);font-size:9px;letter-spacing:2px;
+  color:var(--dim);margin-top:3px;text-transform:uppercase;}
+
+.btn-save{width:100%;background:var(--o);border:none;border-radius:4px;color:#000;
+  font-family:var(--display);font-size:20px;letter-spacing:1px;
+  padding:16px;cursor:pointer;margin-top:8px;}
+.btn-save:active{opacity:.8;}
+
+/* ── TRACK ── */
+#track{background:#000;}
+#cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+  opacity:0;transition:opacity .5s;}
+#cam.on{opacity:1;}
+.scanlines{position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.06) 3px);}
+.vignette{position:absolute;inset:0;pointer-events:none;z-index:3;
+  background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.7) 100%);}
+.ar-wrap{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;}
+
+.ar-header{
+  padding:max(48px,calc(var(--sat)+14px)) 18px 12px;
+  display:flex;justify-content:space-between;align-items:flex-start;}
+.ar-left{}
+.ar-name{font-family:var(--display);font-size:24px;
+  text-shadow:0 2px 14px rgba(0,0,0,.95);}
+.ar-badges{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;}
+.ar-badge{font-family:var(--mono);font-size:9px;letter-spacing:2px;
+  background:rgba(0,0,0,.7);border:1px solid var(--o);
+  border-radius:2px;padding:3px 8px;color:var(--o);text-transform:uppercase;}
+.ar-badge.trade{border-color:rgba(232,82,10,.4);color:rgba(232,82,10,.7);}
+.ar-notes{font-size:11px;color:rgba(255,255,255,.38);margin-top:5px;letter-spacing:.5px;
+  max-width:220px;line-height:1.5;}
+.ar-exit{background:rgba(0,0,0,.6);border:1px solid #333;border-radius:3px;
+  color:var(--text);font-family:var(--mono);font-size:11px;
+  letter-spacing:1px;padding:9px 14px;cursor:pointer;flex-shrink:0;}
+
+.ar-mid{flex:1;display:flex;align-items:center;justify-content:center;position:relative;}
+.ar-photo-thumb{position:absolute;top:0;right:0;width:84px;height:64px;
+  border:1px solid rgba(232,82,10,.4);border-radius:3px;object-fit:cover;opacity:.8;}
+
+.compass-rose{position:absolute;width:180px;height:180px;
+  border:1px solid rgba(232,82,10,.1);border-radius:50%;}
+.compass-rose::before{content:'';position:absolute;inset:16px;
+  border:1px solid rgba(232,82,10,.06);border-radius:50%;}
+.rose-n{position:absolute;font-family:var(--mono);font-size:11px;
+  color:rgba(232,82,10,.35);top:6px;left:50%;transform:translateX(-50%);}
+.rose-s{position:absolute;font-family:var(--mono);font-size:11px;
+  color:rgba(232,82,10,.2);bottom:6px;left:50%;transform:translateX(-50%);}
+.rose-e{position:absolute;font-family:var(--mono);font-size:11px;
+  color:rgba(232,82,10,.2);top:50%;right:8px;transform:translateY(-50%);}
+.rose-w{position:absolute;font-family:var(--mono);font-size:11px;
+  color:rgba(232,82,10,.2);top:50%;left:8px;transform:translateY(-50%);}
+
+.xhair{position:absolute;width:100px;height:100px;
+  border:1.5px solid rgba(61,255,110,.65);border-radius:50%;
+  box-shadow:0 0 20px rgba(61,255,110,.25);opacity:0;transition:opacity .3s;}
+.xhair::before,.xhair::after{content:'';position:absolute;background:var(--green);
+  box-shadow:0 0 5px var(--green);}
+.xhair::before{width:1.5px;height:38%;left:50%;top:0;transform:translateX(-50%);}
+.xhair::after{width:38%;height:1.5px;top:50%;left:0;transform:translateY(-50%);}
+.xhair.show{opacity:1;}
+
+.arrow-cont{display:flex;flex-direction:column;align-items:center;gap:12px;
+  transition:transform .07s linear;z-index:2;}
+.ar-arrow{width:0;height:0;
+  border-left:20px solid transparent;border-right:20px solid transparent;
+  border-bottom:46px solid var(--o);
+  filter:drop-shadow(0 0 14px var(--o)) drop-shadow(0 0 28px rgba(232,82,10,.3));
+  transition:border-bottom-color .2s,filter .2s;}
+.ar-arrow.on{border-bottom-color:var(--green);
+  filter:drop-shadow(0 0 14px var(--green)) drop-shadow(0 0 28px rgba(61,255,110,.3));}
+.ar-deg{font-family:var(--display);font-size:48px;color:var(--o);
+  text-shadow:0 0 20px var(--o);transition:color .2s,text-shadow .2s;}
+.ar-deg.on{color:var(--green);text-shadow:0 0 20px var(--green);}
+.ar-hint{font-family:var(--mono);font-size:9px;letter-spacing:3px;
+  color:rgba(255,255,255,.45);text-align:center;text-transform:uppercase;}
+
+.ar-footer{padding:14px 16px max(32px,calc(var(--sab)+14px));}
+.data-row{display:flex;gap:7px;}
+.data-box{flex:1;background:rgba(0,0,0,.7);border:1px solid rgba(232,82,10,.18);
+  border-radius:4px;padding:10px 10px;}
+.data-lbl{font-family:var(--mono);font-size:7px;letter-spacing:3px;
+  color:var(--o);text-transform:uppercase;}
+.data-val{font-family:var(--display);font-size:20px;margin-top:2px;}
+
+.cal-hint{position:absolute;bottom:110px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.75);border:1px solid rgba(232,82,10,.25);
+  border-radius:3px;padding:7px 14px;font-family:var(--mono);font-size:9px;
+  letter-spacing:2px;color:var(--dim2);white-space:nowrap;
+  opacity:0;transition:opacity .4s;pointer-events:none;text-transform:uppercase;}
+.cal-hint.show{opacity:1;}
+
+.no-compass{position:absolute;inset:0;z-index:20;background:rgba(0,0,0,.92);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;padding:36px;text-align:center;}
+.no-compass.show{display:flex;}
+.no-compass h2{font-family:var(--display);font-size:28px;color:var(--o);}
+.no-compass p{font-family:var(--mono);font-size:10px;color:var(--dim2);
+  line-height:2;letter-spacing:1px;}
+.no-compass code{background:#1a1a1a;padding:2px 7px;border-radius:2px;color:var(--text);}
+
+.cam-prompt{position:absolute;inset:0;z-index:15;background:rgba(0,0,0,.93);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:13px;padding:36px;text-align:center;}
+.cam-prompt h2{font-family:var(--display);font-size:30px;color:var(--o);}
+.cam-prompt p{font-family:var(--mono);font-size:10px;color:var(--dim2);
+  line-height:1.9;letter-spacing:1px;}
+.btn-cam{background:var(--o);color:#000;border:none;border-radius:4px;
+  font-family:var(--display);font-size:18px;
+  padding:14px 32px;cursor:pointer;margin-top:4px;}
+.btn-skip{background:transparent;border:1px solid #2a2a2a;color:#555;
+  font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  padding:10px 20px;border-radius:3px;cursor:pointer;text-transform:uppercase;}
+
+/* ── MODALS ── */
+.modal-bg{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.88);
+  display:none;align-items:flex-end;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--panel);border:1px solid var(--border2);
+  border-radius:12px 12px 0 0;
+  padding:24px 22px max(44px,calc(var(--sab)+24px));
+  width:100%;max-width:500px;}
+.modal-handle{width:32px;height:3px;background:#2a2a2a;border-radius:2px;margin:0 auto 18px;}
+.modal-title{font-family:var(--display);font-size:26px;margin-bottom:3px;}
+.modal-sub{font-family:var(--mono);font-size:9px;letter-spacing:3px;
+  color:var(--dim);margin-bottom:18px;text-transform:uppercase;}
+.modal-actions{display:flex;gap:9px;margin-top:0;}
+.btn-primary-m{flex:1;background:var(--o);color:#000;border:none;border-radius:3px;
+  font-family:var(--mono);font-size:11px;letter-spacing:1px;
+  padding:13px;cursor:pointer;text-transform:uppercase;}
+.btn-secondary-m{flex:1;background:transparent;border:1px solid var(--border2);
+  color:var(--dim2);font-family:var(--mono);font-size:11px;letter-spacing:1px;
+  padding:13px;border-radius:3px;cursor:pointer;text-transform:uppercase;}
+#qr-box{display:flex;justify-content:center;background:#fff;border-radius:6px;
+  padding:14px;width:fit-content;margin:0 auto 10px;}
+.qr-info{text-align:center;font-family:var(--mono);font-size:10px;
+  color:var(--dim);letter-spacing:1px;margin-bottom:18px;}
+
+/* ── PRO UPSELL MODAL ── */
+#pro-modal .modal{background:var(--bg);}
+.pro-hero{text-align:center;padding:8px 0 24px;}
+.pro-icon{font-size:40px;margin-bottom:12px;}
+.pro-title{font-family:var(--display);font-size:32px;margin-bottom:8px;}
+.pro-tagline{font-size:14px;color:var(--dim2);line-height:1.6;max-width:300px;margin:0 auto;}
+.pro-features{display:flex;flex-direction:column;gap:10px;margin:20px 0 24px;}
+.pro-feat{display:flex;align-items:center;gap:12px;font-size:14px;color:var(--text);}
+.pro-feat-icon{width:32px;height:32px;border-radius:50%;background:var(--o2);
+  border:1px solid rgba(232,82,10,.3);display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;}
+.pro-price-row{text-align:center;margin-bottom:20px;padding:16px;
+  background:var(--panel);border:1px solid var(--border2);border-radius:6px;}
+.pro-price{font-family:var(--display);font-size:42px;color:var(--o);}
+.pro-price-period{font-family:var(--mono);font-size:10px;letter-spacing:2px;
+  color:var(--dim);margin-top:2px;text-transform:uppercase;}
+.pro-fine{font-family:var(--mono);font-size:9px;color:var(--dim);
+  text-align:center;margin-top:12px;letter-spacing:1px;}
+
+/* ── EXPORT PDF ── */
+#export-modal .modal-sub{margin-bottom:16px;}
+.export-preview{background:var(--panel2);border:1px solid var(--border);
+  border-radius:4px;padding:16px;margin-bottom:16px;
+  font-family:var(--mono);font-size:10px;color:var(--dim2);letter-spacing:1px;line-height:2;}
+.export-preview b{color:var(--text);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:max(88px,calc(var(--sab)+78px));left:50%;
+  transform:translateX(-50%);background:var(--o);color:#000;
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;
+  padding:10px 20px;border-radius:3px;opacity:0;transition:opacity .25s;
+  z-index:99;pointer-events:none;white-space:nowrap;text-transform:uppercase;}
+.toast.show{opacity:1;}
+
+/* install banner */
+.install-tip{margin:10px 20px 0;background:var(--panel);border:1px solid var(--border);
+  border-radius:4px;padding:11px 14px;display:none;
+  align-items:center;gap:10px;}
+.install-tip.show{display:flex;}
+.install-tip-text{flex:1;font-family:var(--mono);font-size:9px;letter-spacing:1px;
+  color:var(--dim2);line-height:1.7;}
+.install-tip-text b{color:var(--o);}
+.install-x{background:none;border:none;color:var(--dim);font-size:16px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash" class="screen active">
+  <div class="splash-logo">
+    <div class="splash-icon">📍</div>
+    <div class="splash-brand">Sitemark</div>
+    <div class="splash-sub-brand">Field</div>
+    <div class="splash-tagline">Mark anything. Photo it. Find it later.</div>
+  </div>
+  <div class="splash-bar"><div class="splash-fill"></div></div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="screen">
+  <div class="home-header">
+    <div class="home-brand-row">
+      <div class="home-brand">
+        <div class="brand-name">Sitemark <span style="color:var(--o)">Field</span></div>
+        <div class="brand-field">Field Documentation</div>
+      </div>
+      <div class="header-actions">
+        <div id="plan-badge" class="free-badge">FREE</div>
+        <button id="export-btn" style="display:none" onclick="openExport()"
+          class="btn-s btn-edit" style="font-size:10px">EXPORT</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="free-limit-bar" id="free-bar">
+    <div class="flb-top">
+      <div class="flb-label">FREE MARKS USED</div>
+      <div class="flb-count" id="flb-count">0 / 10</div>
+    </div>
+    <div class="flb-track"><div class="flb-fill" id="flb-fill"></div></div>
+    <div class="flb-cta" onclick="openPro()">Upgrade to Pro — unlimited marks $4.99/mo →</div>
+  </div>
+
+  <div class="install-tip" id="install-tip">
+    <div class="install-tip-text"><b>ADD TO HOME SCREEN</b><br>Safari → Share → Add to Home Screen for full sensor access</div>
+    <button class="install-x" onclick="dismissInstall()">✕</button>
+  </div>
+
+  <div class="import-banner" id="import-banner"></div>
+
+  <div class="job-tabs-wrap">
+    <div class="job-tabs" id="job-tabs"></div>
+  </div>
+
+  <div class="scroll">
+    <div class="marks-grid" id="marks-grid"></div>
+  </div>
+
+  <button class="fab" onclick="tapFab()">＋</button>
+</div>
+
+<!-- MARK / EDIT -->
+<div id="mark" class="screen">
+  <div class="page-header">
+    <div class="page-title" id="mark-title">New Mark</div>
+    <button class="back-btn" onclick="showHome()">← Back</button>
+  </div>
+  <div class="scroll">
+    <div class="form-body">
+
+      <div class="field">
+        <label class="field-label">Name / Description</label>
+        <input class="field-input" id="f-name" type="text"
+          placeholder="East riser drop, Panel 3A, AC unit..." autocomplete="off"/>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Job / Site</label>
+        <select class="field-input" id="f-job"></select>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Trade</label>
+        <div class="picker-wrap" id="trade-picker">
+          <div class="picker-band"></div>
+          <div class="picker-list" id="trade-list"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Floor / Level</label>
+        <div class="picker-wrap" id="floor-picker">
+          <div class="picker-band"></div>
+          <div class="picker-list" id="floor-list"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Compass Heading — stand at your mark</label>
+        <div class="compass-box">
+          <div class="cring">
+            <div class="clabels">
+              <span style="top:9%;left:50%">N</span>
+              <span style="top:50%;right:3%">E</span>
+              <span style="bottom:9%;left:50%">S</span>
+              <span style="top:50%;left:3%">W</span>
+            </div>
+            <div class="cneedle" id="mark-needle"></div>
+            <div class="cdot"></div>
+          </div>
+          <div>
+            <div class="compass-hdg" id="mark-hdg">---°</div>
+            <div class="compass-status" id="mark-cstatus">Waiting for compass...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Photo — snap your mark location</label>
+        <div class="photo-area" id="photo-area"
+          onclick="document.getElementById('photo-input').click()">
+          <div style="font-size:22px">📷</div>
+          <div class="photo-label">Tap to attach photo</div>
+        </div>
+        <input type="file" id="photo-input" accept="image/*"
+          capture="environment" onchange="handlePhoto(event)"/>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Notes</label>
+        <textarea class="field-input" id="f-notes"
+          placeholder="Above drop ceiling, near stairwell, 2ft west of sprinkler..."></textarea>
+      </div>
+
+      <button class="btn-save" id="save-btn" onclick="saveMark()">Drop Mark</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRACK / AR -->
+<div id="track" class="screen">
+  <video id="cam" autoplay playsinline muted></video>
+  <div class="scanlines"></div>
+  <div class="vignette"></div>
+  <div class="ar-wrap">
+    <div class="ar-header">
+      <div class="ar-left">
+        <div class="ar-name" id="t-name">Mark</div>
+        <div class="ar-badges">
+          <div class="ar-badge" id="t-floor">FL G</div>
+          <div class="ar-badge trade" id="t-trade"></div>
+          <div class="ar-badge" id="t-job-b" style="border-color:#333;color:var(--dim2)"></div>
+        </div>
+        <div class="ar-notes" id="t-notes"></div>
+      </div>
+      <button class="ar-exit" onclick="showHome()">✕</button>
+    </div>
+    <div class="ar-mid">
+      <img id="ar-thumb" class="ar-photo-thumb" style="display:none"/>
+      <div class="compass-rose">
+        <div class="rose-n">N</div><div class="rose-s">S</div>
+        <div class="rose-e">E</div><div class="rose-w">W</div>
+      </div>
+      <div class="xhair" id="xhair"></div>
+      <div class="arrow-cont" id="arrow-cont">
+        <div class="ar-arrow" id="ar-arrow"></div>
+        <div class="ar-deg" id="ar-deg">---</div>
+        <div class="ar-hint" id="ar-hint">Rotate to face mark heading</div>
+      </div>
+    </div>
+    <div class="cal-hint" id="cal-hint">Move phone in a figure-8 to calibrate compass</div>
+    <div class="ar-footer">
+      <div class="data-row">
+        <div class="data-box">
+          <div class="data-lbl">Mark Heading</div>
+          <div class="data-val" id="t-ahdg">---°</div>
+        </div>
+        <div class="data-box">
+          <div class="data-lbl">Your Heading</div>
+          <div class="data-val" id="t-yhdg">---°</div>
+        </div>
+        <div class="data-box">
+          <div class="data-lbl">Delta</div>
+          <div class="data-val" id="t-delta">---°</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="no-compass" id="no-compass">
+    <h2>Compass Needs Permission</h2>
+    <p>On iPhone:<br><code>Settings → Safari → Motion & Orientation Access → ON</code><br><br>
+    Or add to Home Screen via Safari:<br><b style="color:var(--o)">Share → Add to Home Screen</b></p>
+    <button class="btn-save" style="width:auto;padding:12px 28px;font-size:16px;margin-top:4px"
+      onclick="retryCompass()">Retry</button>
+    <button class="btn-skip" onclick="showHome()">← Back</button>
+  </div>
+  <div class="cam-prompt" id="cam-prompt">
+    <h2>Enable Camera</h2>
+    <p>Use your rear camera as a live AR viewfinder.<br>Nothing is recorded or stored.</p>
+    <button class="btn-cam" onclick="startCam()">Enable Camera</button>
+    <button class="btn-skip" style="margin-top:4px" onclick="skipCam()">Compass only</button>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-bg" id="share-modal" onclick="closeMBG('share-modal',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Share Mark</div>
+    <div class="modal-sub">Scan QR or send link — loads on their phone instantly</div>
+    <div id="qr-box"></div>
+    <div class="qr-info" id="qr-info"></div>
+    <div class="modal-actions">
+      <button class="btn-primary-m" onclick="copyLink()">Copy Link</button>
+      <button class="btn-secondary-m" onclick="closeM('share-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW JOB MODAL -->
+<div class="modal-bg" id="job-modal" onclick="closeMBG('job-modal',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">New Job</div>
+    <div class="modal-sub">Create a site or project group</div>
+    <div class="field" style="margin-bottom:16px">
+      <label class="field-label">Job Name</label>
+      <input class="field-input" id="new-job-input" type="text"
+        placeholder="Main St Office, Warehouse B..." autocomplete="off"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary-m" onclick="createJob()">Create Job</button>
+      <button class="btn-secondary-m" onclick="closeM('job-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRO UPSELL MODAL -->
+<div class="modal-bg" id="pro-modal" onclick="closeMBG('pro-modal',event)">
+  <div class="modal" id="pro-modal-inner">
+    <div class="modal-handle"></div>
+    <div class="pro-hero">
+      <div class="pro-icon">⚡</div>
+      <div class="pro-title">Go Pro</div>
+      <div class="pro-tagline">Everything you need to document a full job site, export as-builts, and share with your crew.</div>
+    </div>
+    <div class="pro-features">
+      <div class="pro-feat"><div class="pro-feat-icon">∞</div>Unlimited marks across unlimited jobs</div>
+      <div class="pro-feat"><div class="pro-feat-icon">📄</div>Export PDF as-built reports</div>
+      <div class="pro-feat"><div class="pro-feat-icon">👥</div>Share marks with your whole crew</div>
+      <div class="pro-feat"><div class="pro-feat-icon">🌐</div>Web dashboard to view all jobs</div>
+      <div class="pro-feat"><div class="pro-feat-icon">📷</div>Unlimited photo attachments</div>
+    </div>
+    <div class="pro-price-row">
+      <div class="pro-price">$4.99</div>
+      <div class="pro-price-period">per month · cancel anytime</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary-m" onclick="activatePro()">Start Pro — $4.99/mo</button>
+      <button class="btn-secondary-m" onclick="closeM('pro-modal')">Not now</button>
+    </div>
+    <div class="pro-fine">No payment processor connected yet — tap to simulate Pro activation</div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-bg" id="export-modal" onclick="closeMBG('export-modal',event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Export As-Built</div>
+    <div class="modal-sub">PDF report of all marks for this job</div>
+    <div class="export-preview" id="export-preview"></div>
+    <div class="modal-actions">
+      <button class="btn-primary-m" onclick="generatePDF()">Download PDF</button>
+      <button class="btn-secondary-m" onclick="closeM('export-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════
+// STATE
+// ══════════════════════
+const FREE_LIMIT = 10;
+let db = JSON.parse(localStorage.getItem('smf_db') || 'null') || {
+  jobs:['DEFAULT'], marks:[], isPro:false
+};
+let activeJob = db.jobs[0];
+let editingId = null;
+let currentHdg = null;
+let orientHandler = null;
+let camStream = null;
+let trackMark = null;
+let selectedFloor = 'G';
+let selectedTrade = 'AV';
+let pendingPhoto = null;
+let shareMark = null;
+let hdgBuf = [];
+
+function save(){ localStorage.setItem('smf_db', JSON.stringify(db)); }
+function isPro(){ return db.isPro; }
+function totalMarks(){ return db.marks.length; }
+function canAddMark(){ return isPro() || totalMarks() < FREE_LIMIT; }
+
+// ══════════════════════
+// TOAST
+// ══════════════════════
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// ══════════════════════
+// SPLASH
+// ══════════════════════
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('splash').classList.remove('active');
+    document.getElementById('home').classList.add('active');
+    checkImport(); renderHome();
+    checkInstall(); registerSW();
+  }, 1600);
+});
+
+function registerSW(){
+  if('serviceWorker' in navigator)
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ══════════════════════
+// INSTALL TIP
+// ══════════════════════
+function checkInstall(){
+  const gone = localStorage.getItem('smf_install_gone');
+  const standalone = window.navigator.standalone ||
+    window.matchMedia('(display-mode: standalone)').matches;
+  if(!gone && !standalone)
+    document.getElementById('install-tip').classList.add('show');
+}
+function dismissInstall(){
+  localStorage.setItem('smf_install_gone','1');
+  document.getElementById('install-tip').classList.remove('show');
+}
+
+// ══════════════════════
+// HOME RENDER
+// ══════════════════════
+function renderHome(){
+  // plan badge
+  document.getElementById('plan-badge').textContent = isPro() ? 'PRO' : 'FREE';
+  document.getElementById('plan-badge').className = isPro() ? 'pro-badge' : 'free-badge';
+
+  // export button — pro only
+  document.getElementById('export-btn').style.display = isPro() ? 'inline-block' : 'none';
+
+  // free limit bar
+  const bar = document.getElementById('free-bar');
+  if(!isPro()){
+    bar.classList.add('show');
+    const used = totalMarks();
+    document.getElementById('flb-count').textContent = `${used} / ${FREE_LIMIT}`;
+    document.getElementById('flb-fill').style.width = `${Math.min(100, used/FREE_LIMIT*100)}%`;
+  } else {
+    bar.classList.remove('show');
+  }
+
+  // tabs
+  const tabs = document.getElementById('job-tabs');
+  tabs.innerHTML = '';
+  db.jobs.forEach(j => {
+    const d = document.createElement('div');
+    d.className = 'job-tab' + (j === activeJob ? ' active' : '');
+    d.textContent = j;
+    d.onclick = () => { activeJob = j; renderHome(); };
+    tabs.appendChild(d);
+  });
+  const add = document.createElement('div');
+  add.className = 'job-tab-add'; add.textContent = '＋';
+  add.onclick = openJobModal; tabs.appendChild(add);
+
+  // marks
+  const grid = document.getElementById('marks-grid');
+  const filtered = db.marks.filter(m => m.job === activeJob);
+  if(!filtered.length){
+    grid.innerHTML = '<div class="empty">No marks for this job<br><span style="color:#2a2a2a">Tap + to drop your first mark</span></div>';
+    return;
+  }
+  grid.innerHTML = '';
+  filtered.forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'mark-card';
+    card.innerHTML = `
+      ${m.photo ? `<img class="mark-photo" src="${m.photo}" loading="lazy"/>` : ''}
+      <div class="mark-body">
+        <div class="mark-name">${esc(m.name)}</div>
+        <div class="mark-meta">FL ${esc(m.floor)} · ${Math.round(m.heading)}° ${dirLabel(m.heading)} · ${esc(m.ts||'')}</div>
+        ${m.notes ? `<div class="mark-notes">${esc(m.notes)}</div>` : ''}
+        <div class="mark-tags">
+          <span class="mark-tag">${esc(m.trade||'AV')}</span>
+        </div>
+        <div class="mark-actions">
+          <button class="btn-s btn-track" onclick="goTrack('${m.id}');event.stopPropagation()">▶ Track</button>
+          <button class="btn-s btn-edit" onclick="showMark('${m.id}');event.stopPropagation()">Edit</button>
+          <button class="btn-s btn-share" onclick="openShare('${m.id}');event.stopPropagation()">Share</button>
+          <button class="btn-s btn-del" onclick="delMark('${m.id}');event.stopPropagation()">✕</button>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function delMark(id){ if(!confirm('Delete this mark?'))return; db.marks=db.marks.filter(m=>m.id!==id); save(); renderHome(); }
+
+// ══════════════════════
+// FAB — gate on free limit
+// ══════════════════════
+function tapFab(){
+  if(!canAddMark()){ openPro(); return; }
+  showMark(null);
+}
+
+// ══════════════════════
+// MARK / EDIT
+// ══════════════════════
+function showMark(id){
+  editingId = id; pendingPhoto = null;
+  const sel = document.getElementById('f-job');
+  sel.innerHTML = '';
+  db.jobs.forEach(j => {
+    const o = document.createElement('option');
+    o.value = j; o.textContent = j;
+    if(j === activeJob) o.selected = true;
+    sel.appendChild(o);
+  });
+  if(id){
+    const m = db.marks.find(x => x.id === id);
+    document.getElementById('mark-title').textContent = 'Edit Mark';
+    document.getElementById('save-btn').textContent = 'Save Changes';
+    document.getElementById('f-name').value = m.name;
+    document.getElementById('f-notes').value = m.notes || '';
+    selFloorByVal(m.floor);
+    selTradeByVal(m.trade || 'AV');
+    sel.value = m.job || activeJob;
+    if(m.photo){ pendingPhoto = m.photo; showPhotoPreview(m.photo); }
+    else resetPhotoArea();
+  } else {
+    document.getElementById('mark-title').textContent = 'New Mark';
+    document.getElementById('save-btn').textContent = 'Drop Mark';
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-notes').value = '';
+    selFloorByVal('G'); selTradeByVal('AV'); resetPhotoArea();
+  }
+  setScreen('mark');
+  // Reinitialise pickers after screen is visible so heights are correct
+  requestAnimationFrame(() => {
+    initPickers();
+    if(editingId){
+      const m2 = db.marks.find(x => x.id === editingId);
+      if(m2){ selTradeByVal(m2.trade||'AV'); selFloorByVal(m2.floor); }
+    } else {
+      selTradeByVal(selectedTrade||'AV');
+      selFloorByVal(selectedFloor||'G');
+    }
+  });
+  startCompassMark();
+}
+
+// ══════════════════════
+// SCROLL WHEEL PICKERS
+// ══════════════════════
+const TRADES = ['AV','Electrical','HVAC','Plumbing','Data','Security','Fire Alarm','Security Camera','Other'];
+const FLOORS = ['B4','B3','B2','B1','G','2','3','4','5','6','7','8','9','10','11','12','Roof'];
+const ITEM_H = 38;
+const PADDING = 2; // items above/below center
+
+function buildPicker(listEl, wrapEl, items, initVal, onChange){
+  // Build list with padding items top/bottom so first/last can center
+  const pad = Array(PADDING).fill('');
+  const allItems = [...pad, ...items, ...pad];
+
+  listEl.innerHTML = allItems.map((item, i) =>
+    `<div class="picker-item" data-val="${item}" data-real="${i >= PADDING && i < allItems.length - PADDING}">${item}</div>`
+  ).join('');
+
+  // Initial index (real item index + padding offset)
+  let currentIdx = items.indexOf(initVal);
+  if(currentIdx < 0) currentIdx = 0;
+  currentIdx += PADDING;
+
+  const setPos = (idx, animate) => {
+    const y = -(idx - PADDING) * ITEM_H;
+    if(!animate) listEl.style.transition = 'none';
+    listEl.style.transform = `translateY(${y}px)`;
+    if(!animate) requestAnimationFrame(() => listEl.style.transition = '');
+
+    // Update active styling
+    listEl.querySelectorAll('.picker-item').forEach((el, i) => {
+      el.classList.remove('active','near');
+      if(i === idx) el.classList.add('active');
+      else if(Math.abs(i - idx) === 1) el.classList.add('near');
+    });
+
+    const realIdx = idx - PADDING;
+    if(realIdx >= 0 && realIdx < items.length) onChange(items[realIdx]);
+  };
+
+  setPos(currentIdx, false);
+
+  // Touch handling
+  let startY = 0, startIdx = currentIdx, lastY = 0, velY = 0, lastT = 0;
+
+  const clamp = idx => Math.max(PADDING, Math.min(items.length - 1 + PADDING, idx));
+
+  wrapEl.addEventListener('touchstart', e => {
+    startY = e.touches[0].clientY;
+    lastY = startY; lastT = Date.now();
+    startIdx = currentIdx;
+    listEl.style.transition = 'none';
+    velY = 0;
+  }, {passive:true});
+
+  wrapEl.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const y = e.touches[0].clientY;
+    const now = Date.now();
+    velY = (y - lastY) / Math.max(1, now - lastT) * 16;
+    lastY = y; lastT = now;
+    const delta = y - startY;
+    const rawIdx = startIdx - delta / ITEM_H;
+    currentIdx = clamp(Math.round(rawIdx));
+    const floatY = -(rawIdx - PADDING) * ITEM_H;
+    listEl.style.transform = `translateY(${floatY}px)`;
+
+    // live active update
+    listEl.querySelectorAll('.picker-item').forEach((el, i) => {
+      el.classList.remove('active','near');
+      if(i === Math.round(rawIdx + PADDING - PADDING)) el.classList.add('active');
+    });
+  }, {passive:false});
+
+  wrapEl.addEventListener('touchend', () => {
+    // momentum
+    let target = currentIdx - velY * 2;
+    target = clamp(Math.round(target));
+    currentIdx = target;
+    listEl.style.transition = 'transform .25s cubic-bezier(.25,.46,.45,.94)';
+    setPos(currentIdx, true);
+    // haptic if available
+    if(navigator.vibrate) navigator.vibrate(8);
+  });
+
+  // Mouse drag (desktop)
+  let mouseDown = false, mouseStartY = 0, mouseStartIdx = 0;
+  wrapEl.addEventListener('mousedown', e => {
+    mouseDown = true; mouseStartY = e.clientY; mouseStartIdx = currentIdx;
+    listEl.style.transition = 'none';
+  });
+  window.addEventListener('mousemove', e => {
+    if(!mouseDown) return;
+    const delta = e.clientY - mouseStartY;
+    const rawIdx = mouseStartIdx - delta / ITEM_H;
+    currentIdx = clamp(Math.round(rawIdx));
+    const floatY = -(rawIdx - PADDING) * ITEM_H;
+    listEl.style.transform = `translateY(${floatY}px)`;
+  });
+  window.addEventListener('mouseup', () => {
+    if(!mouseDown) return;
+    mouseDown = false;
+    listEl.style.transition = 'transform .2s cubic-bezier(.25,.46,.45,.94)';
+    setPos(currentIdx, true);
+  });
+
+  // Return setter for external setValue
+  return (val) => {
+    const idx = items.indexOf(val);
+    if(idx >= 0){ currentIdx = idx + PADDING; setPos(currentIdx, false); }
+  };
+}
+
+let setTradePicker, setFloorPicker;
+
+function initPickers(){
+  setTradePicker = buildPicker(
+    document.getElementById('trade-list'),
+    document.getElementById('trade-picker'),
+    TRADES, selectedTrade,
+    val => { selectedTrade = val; }
+  );
+  setFloorPicker = buildPicker(
+    document.getElementById('floor-list'),
+    document.getElementById('floor-picker'),
+    FLOORS, selectedFloor,
+    val => { selectedFloor = val; }
+  );
+}
+
+// Called once DOM ready
+document.addEventListener('DOMContentLoaded', initPickers);
+
+function selTradeByVal(val){
+  selectedTrade = val;
+  if(setTradePicker) setTradePicker(val);
+}
+function selFloorByVal(val){
+  selectedFloor = val;
+  if(setFloorPicker) setFloorPicker(val);
+}
+
+function handlePhoto(e){
+  const file = e.target.files[0]; if(!file) return;
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    const MAX = 800; let w = img.width, h = img.height;
+    if(w > MAX){ h = Math.round(h*MAX/w); w = MAX; }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    pendingPhoto = canvas.toDataURL('image/jpeg', 0.75);
+    showPhotoPreview(pendingPhoto);
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+}
+function showPhotoPreview(src){
+  document.getElementById('photo-area').innerHTML = `
+    <img src="${src}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:4px"/>
+    <div style="position:absolute;bottom:5px;right:7px;font-family:var(--mono);font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.7);background:rgba(0,0,0,.5);padding:2px 6px;border-radius:2px;">TAP TO CHANGE</div>`;
+}
+function resetPhotoArea(){
+  document.getElementById('photo-area').innerHTML = '<div style="font-size:22px">📷</div><div class="photo-label">Tap to attach photo</div>';
+  document.getElementById('photo-input').value = '';
+}
+
+function saveMark(){
+  const name = document.getElementById('f-name').value.trim();
+  if(!name){ toast('Enter a name'); document.getElementById('f-name').focus(); return; }
+  const hdg = currentHdg !== null ? currentHdg : 0;
+  const job = document.getElementById('f-job').value || activeJob;
+  const notes = document.getElementById('f-notes').value.trim();
+  const now = new Date();
+  const ts = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+  if(editingId){
+    const m = db.marks.find(x => x.id === editingId);
+    if(m){ Object.assign(m, {name, floor:selectedFloor, heading:hdg, notes, job, trade:selectedTrade}); if(pendingPhoto) m.photo = pendingPhoto; }
+    toast('Mark updated ✓');
+  } else {
+    db.marks.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+      name, floor:selectedFloor, heading:hdg, notes, job,
+      trade:selectedTrade, photo:pendingPhoto||null, ts
+    });
+    toast('Mark dropped ✓');
+  }
+  activeJob = job; save(); stopCompass(); showHome();
+}
+
+// ══════════════════════
+// COMPASS
+// ══════════════════════
+function reqCompass(cb){
+  if(typeof DeviceOrientationEvent !== 'undefined' &&
+     typeof DeviceOrientationEvent.requestPermission === 'function'){
+    DeviceOrientationEvent.requestPermission()
+      .then(s => cb(s === 'granted')).catch(() => cb(false));
+  } else cb(true);
+}
+function readHdg(e){
+  if(typeof e.webkitCompassHeading === 'number') return e.webkitCompassHeading;
+  if(e.alpha !== null) return (360 - e.alpha) % 360;
+  return null;
+}
+function dirLabel(d){
+  const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+  return dirs[Math.round(d/22.5) % 16];
+}
+function circMean(angles){
+  let sx=0, sy=0;
+  angles.forEach(a => { const r=a*Math.PI/180; sx+=Math.cos(r); sy+=Math.sin(r); });
+  return ((Math.atan2(sy/angles.length, sx/angles.length)*180/Math.PI)+360)%360;
+}
+function startCompassMark(){
+  reqCompass(ok => {
+    if(!ok){ document.getElementById('mark-cstatus').textContent='Permission denied — check Settings'; return; }
+    orientHandler = e => {
+      const h = readHdg(e); if(h===null) return;
+      currentHdg = h;
+      document.getElementById('mark-hdg').textContent = Math.round(h)+'°';
+      document.getElementById('mark-cstatus').textContent = 'Live ● ' + dirLabel(h);
+      document.getElementById('mark-needle').style.transform = `translateX(-50%) rotate(${h}deg)`;
+    };
+    window.addEventListener('deviceorientation', orientHandler, true);
+  });
+}
+function startCompassTrack(){
+  hdgBuf = [];
+  reqCompass(ok => {
+    if(!ok){ document.getElementById('no-compass').classList.add('show'); return; }
+    const cal = document.getElementById('cal-hint');
+    cal.classList.add('show'); setTimeout(() => cal.classList.remove('show'), 5000);
+    orientHandler = e => {
+      const h = readHdg(e); if(h===null) return;
+      hdgBuf.push(h); if(hdgBuf.length > 5) hdgBuf.shift();
+      currentHdg = circMean(hdgBuf); updateAR(currentHdg);
+    };
+    window.addEventListener('deviceorientation', orientHandler, true);
+  });
+}
+function retryCompass(){ document.getElementById('no-compass').classList.remove('show'); startCompassTrack(); }
+function stopCompass(){
+  if(orientHandler){ window.removeEventListener('deviceorientation', orientHandler, true); orientHandler = null; }
+  currentHdg = null; hdgBuf = [];
+}
+
+// ══════════════════════
+// TRACK / AR
+// ══════════════════════
+function goTrack(id){
+  trackMark = db.marks.find(m => m.id === id); if(!trackMark) return;
+  document.getElementById('t-name').textContent = trackMark.name;
+  document.getElementById('t-floor').textContent = 'FL ' + trackMark.floor;
+  document.getElementById('t-trade').textContent = trackMark.trade || 'AV';
+  document.getElementById('t-job-b').textContent = trackMark.job || '';
+  document.getElementById('t-notes').textContent = trackMark.notes || '';
+  document.getElementById('t-ahdg').textContent = Math.round(trackMark.heading) + '°';
+  const thumb = document.getElementById('ar-thumb');
+  if(trackMark.photo){ thumb.src = trackMark.photo; thumb.style.display = 'block'; }
+  else thumb.style.display = 'none';
+  document.getElementById('cam-prompt').style.display = 'flex';
+  document.getElementById('no-compass').classList.remove('show');
+  document.getElementById('ar-deg').textContent = '---';
+  document.getElementById('ar-arrow').classList.remove('on');
+  document.getElementById('ar-deg').classList.remove('on');
+  document.getElementById('xhair').classList.remove('show');
+  setScreen('track');
+  startCompassTrack();
+}
+function updateAR(h){
+  if(!trackMark) return;
+  const diff = angDiff(h, trackMark.heading);
+  const abs = Math.abs(diff);
+  document.getElementById('t-yhdg').textContent = Math.round(h) + '°';
+  document.getElementById('t-delta').textContent = (diff>=0?'+':'') + Math.round(diff) + '°';
+  document.getElementById('arrow-cont').style.transform = `rotate(${diff}deg)`;
+  if(abs < 8){
+    document.getElementById('ar-arrow').classList.add('on');
+    document.getElementById('ar-deg').classList.add('on');
+    document.getElementById('ar-deg').textContent = 'ON TARGET';
+    document.getElementById('ar-hint').textContent = 'Facing mark direction ✓';
+    document.getElementById('xhair').classList.add('show');
+  } else {
+    document.getElementById('ar-arrow').classList.remove('on');
+    document.getElementById('ar-deg').classList.remove('on');
+    document.getElementById('xhair').classList.remove('show');
+    document.getElementById('ar-deg').textContent = Math.round(abs) + '°';
+    document.getElementById('ar-hint').textContent = (diff>0?'Rotate right ':'Rotate left ') + Math.round(abs) + '°';
+  }
+}
+function angDiff(a,b){ return ((b-a)+540)%360-180; }
+async function startCam(){
+  document.getElementById('cam-prompt').style.display = 'none';
+  try{
+    const s = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}});
+    camStream = s;
+    const v = document.getElementById('cam');
+    v.srcObject = s; v.onloadedmetadata = () => { v.play(); v.classList.add('on'); };
+  }catch(e){ console.log('Camera unavailable:', e); }
+}
+function skipCam(){ document.getElementById('cam-prompt').style.display = 'none'; }
+function stopCam(){
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+  const v = document.getElementById('cam'); v.classList.remove('on'); v.srcObject = null;
+}
+
+// ══════════════════════
+// JOBS
+// ══════════════════════
+function openJobModal(){
+  document.getElementById('new-job-input').value = '';
+  document.getElementById('job-modal').classList.add('show');
+  setTimeout(() => document.getElementById('new-job-input').focus(), 300);
+}
+function createJob(){
+  const name = document.getElementById('new-job-input').value.trim();
+  if(!name){ toast('Enter a job name'); return; }
+  if(db.jobs.map(j=>j.toLowerCase()).includes(name.toLowerCase())){ toast('Job already exists'); return; }
+  db.jobs.push(name); activeJob = name; save();
+  closeM('job-modal'); renderHome(); toast('Job created: ' + name);
+}
+
+// ══════════════════════
+// SHARE
+// ══════════════════════
+function openShare(id){
+  shareMark = db.marks.find(m => m.id === id); if(!shareMark) return;
+  const p = {n:shareMark.name, f:shareMark.floor, h:Math.round(shareMark.heading),
+    j:shareMark.job||'', nt:shareMark.notes||'', tr:shareMark.trade||'AV'};
+  const enc = btoa(unescape(encodeURIComponent(JSON.stringify(p))));
+  const url = window.location.href.split('?')[0] + '?mark=' + enc;
+  document.getElementById('qr-info').textContent =
+    shareMark.name + ' · FL ' + shareMark.floor + ' · ' + Math.round(shareMark.heading) + '°';
+  const box = document.getElementById('qr-box'); box.innerHTML = '';
+  if(typeof QRCode !== 'undefined'){
+    try{ new QRCode(box, {text:url, width:180, height:180, colorDark:'#000', colorLight:'#fff'}); }
+    catch(e){ box.innerHTML = '<p style="padding:12px;color:#666;font-family:var(--mono);font-size:10px">Use Copy Link</p>'; }
+  }
+  document.getElementById('share-modal').classList.add('show');
+}
+function copyLink(){
+  if(!shareMark) return;
+  const p = {n:shareMark.name, f:shareMark.floor, h:Math.round(shareMark.heading),
+    j:shareMark.job||'', nt:shareMark.notes||'', tr:shareMark.trade||'AV'};
+  const enc = btoa(unescape(encodeURIComponent(JSON.stringify(p))));
+  const url = window.location.href.split('?')[0] + '?mark=' + enc;
+  if(navigator.share){
+    navigator.share({title:'Sitemark: '+shareMark.name, url}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(url)
+      .then(() => toast('Link copied ✓'))
+      .catch(() => { const ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('Link copied ✓'); });
+  }
+}
+
+// ══════════════════════
+// IMPORT VIA URL
+// ══════════════════════
+function checkImport(){
+  const params = new URLSearchParams(window.location.search);
+  const enc = params.get('mark'); if(!enc) return;
+  try{
+    const p = JSON.parse(decodeURIComponent(escape(atob(enc))));
+    const job = p.j || 'SHARED';
+    if(!db.jobs.includes(job)) db.jobs.push(job);
+    const exists = db.marks.find(m => m.name===p.n && m.floor===p.f && Math.round(m.heading)===p.h);
+    if(!exists){
+      db.marks.unshift({id:Date.now().toString(36), name:p.n, floor:p.f, heading:p.h,
+        notes:p.nt||'', job, trade:p.tr||'AV', photo:null, ts:'shared'});
+      save(); activeJob = job;
+      const b = document.getElementById('import-banner');
+      b.textContent = '✓ Mark imported: ' + p.n + ' · FL ' + p.f + ' · ' + p.h + '°';
+      b.classList.add('show');
+    }
+    window.history.replaceState({}, '', window.location.pathname);
+  }catch(e){ console.log('Import error:', e); }
+}
+
+// ══════════════════════
+// PRO
+// ══════════════════════
+function openPro(){ document.getElementById('pro-modal').classList.add('show'); }
+function activatePro(){
+  // In production this would go to Stripe/RevenueCat
+  db.isPro = true; save();
+  closeM('pro-modal');
+  toast('Pro activated ✓ — unlimited marks unlocked');
+  renderHome();
+}
+
+// ══════════════════════
+// EXPORT PDF
+// ══════════════════════
+function openExport(){
+  if(!isPro()){ openPro(); return; }
+  const marks = db.marks.filter(m => m.job === activeJob);
+  const preview = document.getElementById('export-preview');
+  preview.innerHTML = `<b>Job:</b> ${esc(activeJob)}<br><b>Marks:</b> ${marks.length}<br><b>Date:</b> ${new Date().toLocaleDateString()}<br><br>` +
+    marks.map(m => `→ ${esc(m.name)} · FL ${esc(m.floor)} · ${Math.round(m.heading)}° · ${esc(m.trade||'AV')}`).join('<br>');
+  document.getElementById('export-modal').classList.add('show');
+}
+function generatePDF(){
+  const marks = db.marks.filter(m => m.job === activeJob);
+  const now = new Date().toLocaleDateString();
+  // Build a printable HTML page and open it
+  const rows = marks.map(m => `
+    <tr>
+      <td>${esc(m.name)}</td>
+      <td>${esc(m.trade||'AV')}</td>
+      <td>FL ${esc(m.floor)}</td>
+      <td>${Math.round(m.heading)}° ${dirLabel(m.heading)}</td>
+      <td>${esc(m.notes||'—')}</td>
+      <td>${esc(m.ts||'')}</td>
+    </tr>`).join('');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <title>Sitemark As-Built — ${esc(activeJob)}</title>
+  <style>
+    body{font-family:Arial,sans-serif;padding:32px;color:#111;}
+    h1{font-size:24px;margin-bottom:4px;}
+    .sub{color:#888;font-size:12px;margin-bottom:24px;}
+    table{width:100%;border-collapse:collapse;font-size:12px;}
+    th{background:#111;color:#fff;padding:8px 10px;text-align:left;}
+    td{padding:8px 10px;border-bottom:1px solid #eee;}
+    tr:nth-child(even) td{background:#f9f9f9;}
+    .brand{color:#E8520A;font-weight:bold;}
+  </style></head><body>
+  <h1><span class="brand">Sitemark</span> Field — As-Built Report</h1>
+  <div class="sub">Job: ${esc(activeJob)} · Generated: ${now} · ${marks.length} marks</div>
+  <table>
+    <thead><tr><th>Name</th><th>Trade</th><th>Floor</th><th>Heading</th><th>Notes</th><th>Time</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+  <div style="margin-top:32px;font-size:10px;color:#ccc;">Generated by Sitemark Field · getsitemark.com</div>
+  </body></html>`;
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(() => w.print(), 400);
+  closeM('export-modal');
+}
+
+// ══════════════════════
+// MODAL HELPERS
+// ══════════════════════
+function closeM(id){ document.getElementById(id).classList.remove('show'); }
+function closeMBG(id, e){ if(e.target === document.getElementById(id)) closeM(id); }
+
+// ══════════════════════
+// NAV
+// ══════════════════════
+function setScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showHome(){ stopCam(); stopCompass(); setScreen('home'); renderHome(); }
+</script>
+</body>
+</html>
