@@ -230,6 +230,39 @@ select.field-input{cursor:pointer;}
   padding:16px;cursor:pointer;margin-top:8px;}
 .btn-save:active{opacity:.8;}
 
+/* ── AIM PHOTO ── */
+.aim-photo-wrap{position:relative;width:100%;height:130px;border-radius:4px;overflow:hidden;
+  background:#0d0d0d;border:1px solid var(--border2);}
+.aim-photo-wrap video{width:100%;height:100%;object-fit:cover;display:block;}
+.aim-crosshair{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.aim-crosshair::before,.aim-crosshair::after{content:'';position:absolute;background:rgba(232,82,10,.85);}
+.aim-crosshair::before{width:1px;height:36%;}
+.aim-crosshair::after{width:36%;height:1px;}
+.aim-snap-btn{position:absolute;bottom:8px;right:8px;background:var(--o);border:none;
+  border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 2px 14px rgba(232,82,10,.5);}
+.aim-label{position:absolute;top:8px;left:8px;font-family:var(--mono);font-size:8px;
+  letter-spacing:2px;color:rgba(255,255,255,.5);background:rgba(0,0,0,.55);
+  padding:3px 7px;border-radius:2px;text-transform:uppercase;}
+.aim-retake{position:absolute;bottom:10px;left:8px;background:rgba(0,0,0,.65);
+  border:1px solid #333;border-radius:3px;color:var(--dim2);font-family:var(--mono);
+  font-size:9px;letter-spacing:1px;padding:6px 10px;cursor:pointer;text-transform:uppercase;}
+
+/* ── BARO IN AR ── */
+.baro-box{background:rgba(0,0,0,.7);border:1px solid rgba(232,82,10,.2);
+  border-radius:4px;padding:10px 10px;flex:1;text-align:center;}
+.baro-lbl{font-family:var(--mono);font-size:7px;letter-spacing:3px;color:var(--o);text-transform:uppercase;}
+.baro-val{font-family:var(--display);font-size:20px;margin-top:2px;}
+.baro-sub{font-family:var(--mono);font-size:8px;color:var(--dim);margin-top:1px;letter-spacing:1px;}
+
+/* ── REFERENCE CLUE CARD ── */
+.ref-card{margin:0 16px 8px;background:rgba(0,0,0,.7);border:1px solid rgba(232,82,10,.2);
+  border-radius:4px;padding:10px 14px;display:none;}
+.ref-card.show{display:block;}
+.ref-card-lbl{font-family:var(--mono);font-size:8px;letter-spacing:3px;
+  color:var(--o);text-transform:uppercase;margin-bottom:4px;}
+.ref-card-text{font-size:13px;color:var(--text);line-height:1.5;}
+
 /* ── TRACK ── */
 #track{background:#000;}
 #cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
@@ -518,20 +551,35 @@ select.field-input{cursor:pointer;}
       </div>
 
       <div class="field">
-        <label class="field-label">Photo — snap your mark location</label>
-        <div class="photo-area" id="photo-area"
-          onclick="document.getElementById('photo-input').click()">
-          <div style="font-size:22px">📷</div>
-          <div class="photo-label">Tap to attach photo</div>
+        <label class="field-label">Aim & Shoot — point at the exact spot, then snap</label>
+        <div class="aim-photo-wrap" id="aim-wrap">
+          <div class="aim-label">Point camera at mark location</div>
+          <div class="aim-crosshair"></div>
+          <button class="aim-snap-btn" onclick="snapAimPhoto()">📷</button>
         </div>
-        <input type="file" id="photo-input" accept="image/*"
-          capture="environment" onchange="handlePhoto(event)"/>
+        <canvas id="aim-canvas" style="display:none"></canvas>
       </div>
 
       <div class="field">
-        <label class="field-label">Notes</label>
+        <label class="field-label">Distance from nearest reference point</label>
+        <div style="display:flex;gap:8px">
+          <input class="field-input" id="f-dist" type="number" placeholder="e.g. 6"
+            style="flex:1" inputmode="decimal"/>
+          <select class="field-input" id="f-dist-unit" style="width:90px;flex-shrink:0">
+            <option>ft</option>
+            <option>in</option>
+            <option>m</option>
+          </select>
+        </div>
+        <input class="field-input" id="f-ref" type="text"
+          placeholder="from what? (stairwell door, NE corner, panel...)"
+          style="margin-top:8px" autocomplete="off"/>
+      </div>
+
+      <div class="field">
+        <label class="field-label">Additional Notes</label>
         <textarea class="field-input" id="f-notes"
-          placeholder="Above drop ceiling, near stairwell, 2ft west of sprinkler..."></textarea>
+          placeholder="Above drop ceiling, behind conduit, left of sprinkler..."></textarea>
       </div>
 
       <button class="btn-save" id="save-btn" onclick="saveMark()">Drop Mark</button>
@@ -570,9 +618,13 @@ select.field-input{cursor:pointer;}
         <div class="ar-hint" id="ar-hint">Rotate to face mark heading</div>
       </div>
     </div>
+    <div class="ref-card" id="ref-card">
+      <div class="ref-card-lbl">📍 Reference Point</div>
+      <div class="ref-card-text" id="ref-card-text"></div>
+    </div>
     <div class="cal-hint" id="cal-hint">Move phone in a figure-8 to calibrate compass</div>
     <div class="ar-footer">
-      <div class="data-row">
+      <div class="data-row" style="margin-bottom:7px">
         <div class="data-box">
           <div class="data-lbl">Mark Heading</div>
           <div class="data-val" id="t-ahdg">---°</div>
@@ -584,6 +636,18 @@ select.field-input{cursor:pointer;}
         <div class="data-box">
           <div class="data-lbl">Delta</div>
           <div class="data-val" id="t-delta">---°</div>
+        </div>
+      </div>
+      <div class="data-row">
+        <div class="baro-box">
+          <div class="baro-lbl">Floor Estimate</div>
+          <div class="baro-val" id="baro-val">--</div>
+          <div class="baro-sub" id="baro-sub">calibrating...</div>
+        </div>
+        <div class="baro-box">
+          <div class="baro-lbl">Altitude Δ</div>
+          <div class="baro-val" id="alt-delta">--</div>
+          <div class="baro-sub" id="alt-sub">from mark floor</div>
         </div>
       </div>
     </div>
@@ -844,17 +908,28 @@ function showMark(id){
     document.getElementById('save-btn').textContent = 'Save Changes';
     document.getElementById('f-name').value = m.name;
     document.getElementById('f-notes').value = m.notes || '';
+    // ref field
+    if(m.ref){
+      const parts = m.ref.match(/^([\d.]+)(ft|in|m) from (.+)$/);
+      if(parts){ document.getElementById('f-dist').value=parts[1]; document.getElementById('f-dist-unit').value=parts[2]; document.getElementById('f-ref').value=parts[3]; }
+      else document.getElementById('f-ref').value = m.ref;
+    } else { document.getElementById('f-dist').value=''; document.getElementById('f-ref').value=''; }
     selFloorByVal(m.floor);
     selTradeByVal(m.trade || 'AV');
     sel.value = m.job || activeJob;
-    if(m.photo){ pendingPhoto = m.photo; showPhotoPreview(m.photo); }
-    else resetPhotoArea();
+    if(m.photo){
+      aimPhotoData = m.photo;
+      document.getElementById('aim-wrap').innerHTML = `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover;"/><div class="aim-label">PHOTO CAPTURED ✓</div><button class="aim-retake" onclick="retakeAimPhoto()">Retake</button>`;
+    } else { aimPhotoData=null; }
   } else {
     document.getElementById('mark-title').textContent = 'New Mark';
     document.getElementById('save-btn').textContent = 'Drop Mark';
     document.getElementById('f-name').value = '';
     document.getElementById('f-notes').value = '';
-    selFloorByVal('G'); selTradeByVal('AV'); resetPhotoArea();
+    document.getElementById('f-dist').value = '';
+    document.getElementById('f-ref').value = '';
+    aimPhotoData = null;
+    selFloorByVal('G'); selTradeByVal('AV');
   }
   setScreen('mark');
   // Reinitialise pickers after screen is visible so heights are correct
@@ -867,6 +942,7 @@ function showMark(id){
       selTradeByVal(selectedTrade||'AV');
       selFloorByVal(selectedFloor||'G');
     }
+    if(!aimPhotoData) startAimCamera();
   });
   startCompassMark();
 }
@@ -1012,30 +1088,88 @@ function selFloorByVal(val){
   if(setFloorPicker) setFloorPicker(val);
 }
 
-function handlePhoto(e){
-  const file = e.target.files[0]; if(!file) return;
+// ══════════════════════
+// AIM PHOTO
+// ══════════════════════
+let aimStream = null;
+let aimPhotoData = null;
+
+function startAimCamera(){
+  const wrap = document.getElementById('aim-wrap');
+  // Check if already showing a photo
+  if(aimPhotoData) return;
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}})
+    .then(stream => {
+      aimStream = stream;
+      // Insert video element
+      let v = wrap.querySelector('video');
+      if(!v){ v = document.createElement('video'); v.autoplay=true; v.playsInline=true; v.muted=true; v.style.cssText='width:100%;height:100%;object-fit:cover;position:absolute;inset:0;'; wrap.insertBefore(v, wrap.firstChild); }
+      v.srcObject = stream;
+    })
+    .catch(() => {
+      // fallback to file input
+      wrap.querySelector('.aim-snap-btn').onclick = () => document.getElementById('photo-input-fallback').click();
+      const fi = document.createElement('input');
+      fi.type='file'; fi.accept='image/*'; fi.capture='environment'; fi.id='photo-input-fallback'; fi.style.display='none';
+      fi.onchange = e => { handlePhotoFile(e.target.files[0]); };
+      document.body.appendChild(fi);
+    });
+}
+
+function snapAimPhoto(){
+  const wrap = document.getElementById('aim-wrap');
+  const v = wrap.querySelector('video');
+  if(!v || !aimStream){ return; }
+  const canvas = document.getElementById('aim-canvas');
+  const MAX = 800;
+  let w = v.videoWidth || 640, h = v.videoHeight || 480;
+  if(w > MAX){ h = Math.round(h*MAX/w); w = MAX; }
+  canvas.width = w; canvas.height = h;
+  canvas.getContext('2d').drawImage(v, 0, 0, w, h);
+  aimPhotoData = canvas.toDataURL('image/jpeg', 0.78);
+  // Stop stream
+  aimStream.getTracks().forEach(t => t.stop()); aimStream = null;
+  // Show preview
+  wrap.innerHTML = `
+    <img src="${aimPhotoData}" style="width:100%;height:100%;object-fit:cover;display:block;"/>
+    <div class="aim-label">PHOTO CAPTURED ✓</div>
+    <button class="aim-retake" onclick="retakeAimPhoto()">Retake</button>`;
+  if(navigator.vibrate) navigator.vibrate(30);
+  toast('Photo captured — aim confirmed ✓');
+}
+
+function retakeAimPhoto(){
+  aimPhotoData = null;
+  const wrap = document.getElementById('aim-wrap');
+  wrap.innerHTML = `
+    <div class="aim-label">Point camera at mark location</div>
+    <div class="aim-crosshair"></div>
+    <button class="aim-snap-btn" onclick="snapAimPhoto()">📷</button>`;
+  startAimCamera();
+}
+
+function handlePhotoFile(file){
+  if(!file) return;
   const img = new Image();
   const url = URL.createObjectURL(file);
   img.onload = () => {
-    const MAX = 800; let w = img.width, h = img.height;
-    if(w > MAX){ h = Math.round(h*MAX/w); w = MAX; }
-    const canvas = document.createElement('canvas');
-    canvas.width = w; canvas.height = h;
-    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-    pendingPhoto = canvas.toDataURL('image/jpeg', 0.75);
-    showPhotoPreview(pendingPhoto);
+    const MAX=800; let w=img.width, h=img.height;
+    if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
+    const c=document.createElement('canvas'); c.width=w; c.height=h;
+    c.getContext('2d').drawImage(img,0,0,w,h);
+    aimPhotoData=c.toDataURL('image/jpeg',.78);
+    const wrap=document.getElementById('aim-wrap');
+    wrap.innerHTML=`<img src="${aimPhotoData}" style="width:100%;height:100%;object-fit:cover;"/><div class="aim-label">PHOTO CAPTURED ✓</div><button class="aim-retake" onclick="retakeAimPhoto()">Retake</button>`;
     URL.revokeObjectURL(url);
   };
-  img.src = url;
+  img.src=url;
 }
-function showPhotoPreview(src){
-  document.getElementById('photo-area').innerHTML = `
-    <img src="${src}" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:4px"/>
-    <div style="position:absolute;bottom:5px;right:7px;font-family:var(--mono);font-size:8px;letter-spacing:2px;color:rgba(255,255,255,.7);background:rgba(0,0,0,.5);padding:2px 6px;border-radius:2px;">TAP TO CHANGE</div>`;
-}
-function resetPhotoArea(){
-  document.getElementById('photo-area').innerHTML = '<div style="font-size:22px">📷</div><div class="photo-label">Tap to attach photo</div>';
-  document.getElementById('photo-input').value = '';
+
+function stopAimCamera(){
+  if(aimStream){ aimStream.getTracks().forEach(t=>t.stop()); aimStream=null; }
+  aimPhotoData=null;
+  const wrap=document.getElementById('aim-wrap');
+  if(wrap) wrap.innerHTML=`<div class="aim-label">Point camera at mark location</div><div class="aim-crosshair"></div><button class="aim-snap-btn" onclick="snapAimPhoto()">📷</button>`;
 }
 
 function saveMark(){
@@ -1044,22 +1178,31 @@ function saveMark(){
   const hdg = currentHdg !== null ? currentHdg : 0;
   const job = document.getElementById('f-job').value || activeJob;
   const notes = document.getElementById('f-notes').value.trim();
+  const dist = document.getElementById('f-dist').value.trim();
+  const distUnit = document.getElementById('f-dist-unit').value;
+  const ref = document.getElementById('f-ref').value.trim();
+  const refText = dist && ref ? `${dist}${distUnit} from ${ref}` : (ref || '');
   const now = new Date();
   const ts = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  // capture baro altitude at mark time
+  const markAlt = currentAlt;
 
   if(editingId){
     const m = db.marks.find(x => x.id === editingId);
-    if(m){ Object.assign(m, {name, floor:selectedFloor, heading:hdg, notes, job, trade:selectedTrade}); if(pendingPhoto) m.photo = pendingPhoto; }
+    if(m){
+      Object.assign(m, {name, floor:selectedFloor, heading:hdg, notes, job, trade:selectedTrade, ref:refText, alt:markAlt});
+      if(aimPhotoData) m.photo = aimPhotoData;
+    }
     toast('Mark updated ✓');
   } else {
     db.marks.unshift({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
       name, floor:selectedFloor, heading:hdg, notes, job,
-      trade:selectedTrade, photo:pendingPhoto||null, ts
+      trade:selectedTrade, photo:aimPhotoData||null, ref:refText, alt:markAlt, ts
     });
     toast('Mark dropped ✓');
   }
-  activeJob = job; save(); stopCompass(); showHome();
+  activeJob = job; save(); stopCompass(); stopAimCamera(); showHome();
 }
 
 // ══════════════════════
@@ -1130,17 +1273,28 @@ function goTrack(id){
   document.getElementById('t-job-b').textContent = trackMark.job || '';
   document.getElementById('t-notes').textContent = trackMark.notes || '';
   document.getElementById('t-ahdg').textContent = Math.round(trackMark.heading) + '°';
+  // photo
   const thumb = document.getElementById('ar-thumb');
   if(trackMark.photo){ thumb.src = trackMark.photo; thumb.style.display = 'block'; }
   else thumb.style.display = 'none';
+  // reference card
+  const refCard = document.getElementById('ref-card');
+  const refText = document.getElementById('ref-card-text');
+  if(trackMark.ref){ refText.textContent = trackMark.ref; refCard.classList.add('show'); }
+  else refCard.classList.remove('show');
+  // reset AR
   document.getElementById('cam-prompt').style.display = 'flex';
   document.getElementById('no-compass').classList.remove('show');
   document.getElementById('ar-deg').textContent = '---';
   document.getElementById('ar-arrow').classList.remove('on');
   document.getElementById('ar-deg').classList.remove('on');
   document.getElementById('xhair').classList.remove('show');
+  document.getElementById('baro-val').textContent = '--';
+  document.getElementById('baro-sub').textContent = 'calibrating...';
+  document.getElementById('alt-delta').textContent = '--';
   setScreen('track');
   startCompassTrack();
+  startBaro();
 }
 function updateAR(h){
   if(!trackMark) return;
@@ -1321,13 +1475,69 @@ function closeM(id){ document.getElementById(id).classList.remove('show'); }
 function closeMBG(id, e){ if(e.target === document.getElementById(id)) closeM(id); }
 
 // ══════════════════════
-// NAV
+// BAROMETER
 // ══════════════════════
+let baroInterval = null;
+let baseAlt = null;
+let currentAlt = null;
+const FLOOR_HEIGHT_M = 3.5; // average floor height in meters
+
+function startBaro(){
+  stopBaro();
+  if(!('AbsoluteOrientationSensor' in window) && !window.DeviceMotionEvent){
+    // Try using relative altitude via DeviceMotionEvent or fallback
+  }
+  // Use DeviceMotionEvent for relative pressure if available
+  // Primary: window.DeviceOrientationEvent with absolute
+  // Fallback: check if we can get altitude from geolocation
+  if(navigator.geolocation){
+    const opts = {enableHighAccuracy:true, maximumAge:2000, timeout:5000};
+    const watchId = navigator.geolocation.watchPosition(pos => {
+      if(pos.coords.altitude !== null){
+        currentAlt = pos.coords.altitude;
+        if(baseAlt === null){
+          // Use mark's saved alt if available, else set base now
+          baseAlt = trackMark && trackMark.alt !== undefined ? trackMark.alt : currentAlt;
+        }
+        updateBaroDisplay();
+      }
+    }, null, opts);
+    baroInterval = watchId; // store watchId to clear later
+    document.getElementById('baro-sub').textContent = 'via GPS altitude';
+  } else {
+    document.getElementById('baro-val').textContent = 'N/A';
+    document.getElementById('baro-sub').textContent = 'not available';
+  }
+}
+
+function updateBaroDisplay(){
+  if(currentAlt === null) return;
+  const altDiff = currentAlt - baseAlt;
+  const floorsOff = altDiff / FLOOR_HEIGHT_M;
+  const absFloors = Math.abs(floorsOff);
+  const dir = floorsOff > 0.4 ? '▲ above' : floorsOff < -0.4 ? '▼ below' : '≈ same floor';
+
+  document.getElementById('baro-val').textContent = dir === '≈ same floor' ? '≈ Same' :
+    (floorsOff > 0 ? '+' : '') + floorsOff.toFixed(1) + ' fl';
+  document.getElementById('baro-sub').textContent = dir;
+
+  const altDiffDisplay = altDiff >= 0 ? '+'+Math.round(altDiff)+'m' : Math.round(altDiff)+'m';
+  document.getElementById('alt-delta').textContent = altDiffDisplay;
+  document.getElementById('alt-sub').textContent = altDiff > 0.5 ? 'you are higher' : altDiff < -0.5 ? 'you are lower' : 'same level';
+}
+
+function stopBaro(){
+  if(baroInterval !== null){
+    navigator.geolocation && navigator.geolocation.clearWatch(baroInterval);
+    baroInterval = null;
+  }
+  baseAlt = null; currentAlt = null;
+}
 function setScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-function showHome(){ stopCam(); stopCompass(); setScreen('home'); renderHome(); }
+function showHome(){ stopCam(); stopCompass(); stopBaro(); stopAimCamera(); setScreen('home'); renderHome(); }
 </script>
 </body>
 </html>
